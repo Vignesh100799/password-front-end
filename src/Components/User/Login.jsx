@@ -6,9 +6,15 @@ import { loginValidationSchema } from "./schema/validationSchema";
 import { EyeFill, EyeSlashFill } from "react-bootstrap-icons";
 import "./style/user.css";
 import { isAuthenticated, login } from "./Auth/authService";
+import { useDispatch, useSelector } from "react-redux";
+import { setLoading, setShowPassword } from "../../features/UserReducer";
+import Loading from "./Loading";
+import { toast } from "react-toastify";
+
 
 const Login = () => {
-  const { showPassword } = true;
+  const { showPassword,loading } = useSelector(state=>state.users);
+  const dispatch = useDispatch()
   const navigate = useNavigate();
   const formik = useFormik({
     initialValues: {
@@ -18,11 +24,15 @@ const Login = () => {
     validationSchema: loginValidationSchema,
     onSubmit: async (value) => {
       try {
+        dispatch(setLoading(true));
         await login(value);
         navigate("/dashboard");
+        toast.success('You are login in successfully')
       } catch (error) {
-        console.log(error);
+        console.error(error);
         formik.setErrors({ general: error });
+      }finally{
+        dispatch(setLoading(false));
       }
     },
   });
@@ -32,7 +42,7 @@ const Login = () => {
     }
   }, [navigate]);
   return (
-    <article className="container">
+    <article className="container kvnkjabvav">
       <hgroup className="row justify-content-center">
         <div className="col-xl-10 col-lg-12 col-md-9">
           <section className="card o-hidden border-0 shadow-lg my-5">
@@ -95,12 +105,17 @@ const Login = () => {
                         />
                         <div>
                           <div className="showPass">
-                            {showPassword ? (
-                              <EyeSlashFill className="showPassIcon" />
-                            ) : (
-                              <EyeFill className="showPassIcon" />
-                            )}
-                          </div>
+                          {
+                            showPassword ? <EyeSlashFill
+                              className="showPassIcon"
+                              onClick={() => dispatch(setShowPassword(!showPassword))}
+                            /> :
+                              <EyeFill
+                                className="showPassIcon"
+                                onClick={() => dispatch(setShowPassword(!showPassword))}
+                              />
+                          }
+                        </div>
                         </div>
                         {formik.touched.password && formik.errors.password && (
                           <span className="d-block ms-3 text-danger small invalid-feedback">
@@ -128,7 +143,7 @@ const Login = () => {
                       className="btn btn-primary btn-user btn-block"
                       type="submit"
                     >
-                      Login
+                      {loading? <Loading /> : 'login'}
                     </button>
                   </form>
                   <hr />
